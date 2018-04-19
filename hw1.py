@@ -32,11 +32,21 @@ Key = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#',\
            'c', 'c#', 'd', 'd#', 'e', 'f', 'f#',\
            'g', 'g#', 'a', 'a#', 'b'] 
 acc = 0;         
-#manually change path to each genre and test each song           
+music_pieces = 100;
+#manually change path to each genre and test each song     
+GENRES = "metal"      
+"""
+ACCURACY
+ROCK 0.2755
+HIPHOP 0.12345
+POP   0.35106
+BLUES 0.0408
+METAL 0.1935
+"""
 for fileLen in range(100):
-    path = 'genres/country/country.00{0:03}.au'.format(fileLen)
+    path = 'genres/{0}/{0}.00{1:03}.au'.format(GENRES,fileLen)
     x, fs = librosa.load(path, sr=None)
-    ansKey = int(open('gtzan_key-master/gtzan_key/genres/country/country.00{0:03}.lerch.txt'.format(fileLen),'r').read())
+    ansKey = int(open('gtzan_key-master/gtzan_key/genres/{0}/{0}.00{1:03}.lerch.txt'.format(GENRES,fileLen),'r').read())
 
     
     if x.dtype != 'float32': # deal with the case of integer-valued data
@@ -45,16 +55,17 @@ for fileLen in range(100):
         x = np.mean(x, axis = 1)
     
     Chroma = librosa.feature.chroma_stft(y=x, sr=fs)
-    Chroma = Chroma/np.sum(np.abs(Chroma)**2, axis=0)**(1./2)
+    Chroma = Chroma/np.tile(np.sum(np.abs(Chroma)**2, axis=0)**(1./2), \
+                        (Chroma.shape[0], 1))
     #Q1###
     GAMA = 100
     Chroma = np.log10(1+GAMA *np.abs(Chroma))
     #spectral smoothing
-    
-    Len = 10
+    """
+    Len = 5
     for i in range(Chroma.shape[1]):
         Chroma[:,i] = np.sum(Chroma[:,i- int(Len/2):int(i+Len/2)],axis = 1)/Len
-    
+    """
     
     sumChroma =np.sum(Chroma,axis = 1)
     tonic = np.argmax(sumChroma)
@@ -68,6 +79,9 @@ for fileLen in range(100):
     MajorCof = np.dot(temp_ma,sumChroma)/ np.sqrt(np.multiply(np.dot(sumChroma,sumChroma),np.dot(temp_ma,temp_ma)))
      
     MinorCof = np.dot(temp_mi,sumChroma)/np.sqrt(np.multiply(np.dot(sumChroma,sumChroma),np.dot(temp_mi,temp_mi)))
+    if(ansKey == -1):
+        music_pieces -=1
+        continue
     if(ansKey == 0):
         ansKey = 9
     elif(ansKey == 1):
@@ -82,7 +96,7 @@ for fileLen in range(100):
         ansKey = 23
     else :
         ansKey = ansKey-3
-   
+
     if(tonic >=0 and tonic <= 11):
         if(MajorCof>MinorCof):
             print(tonic,Key[tonic]+" Major")
@@ -92,6 +106,7 @@ for fileLen in range(100):
             print((tonic+12),Key[tonic+12]+" Minor")
             if tonic+12 == ansKey:
                 acc=acc+1 
-        print(acc)
-
-print('accuracy: ',acc/100)
+        print("Ans: ",Key[ansKey])
+print("#music_pieces: ",music_pieces)
+if music_pieces !=0:
+    print('accuracy: ',acc/music_pieces)
