@@ -15,9 +15,9 @@ font = {'family' : 'sans-serif', 'sans-serif':'Arial', 'size'   : 18}
 matplotlib.rc('font', **font)
 
 # Generate major chord templates
-Major_template = np.array([[1,0,1,0,1,1,0,1,0,1,0,1]])/np.sqrt(3.0)
+Major_template = np.array([[6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88]])
 # Generate monor chord templates
-Minor_template = np.array([[1,0,1,1,0,1,0,1,1,0,1,0]])/np.sqrt(3.0)
+Minor_template = np.array([[6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17]])
 
 Template = Major_template
 for i in range(11):
@@ -33,16 +33,17 @@ Key = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#',\
 acc = 0;         
 music_pieces = 100;
 #manually change path to each genre and test each song     
-GENRES = "metal"      
+GENRES = "rock"      
 """
-------------------------ACCURACY-----------------
-gama     100      |    10     |    1
-ROCK    0.2755    |  0.31633  | 0.33673
-HIPHOP  0.12345   |  0.14814  | 0.13580
-POP     0.35106   |  0.40426  | 0.38297
-BLUES   0.0408    |  0.0408   | 0.06122
-METAL   0.1935    |  0.1935   | 0.21505
--------------------------------------------------
+---------------ACCURACY-------------------------------------------
+            new Acc                        |
+gama      100     |    10    |    1        |
+ROCK       |   | 0.45816     |
+HIPHOP     |   | 0.17407     |
+POP        |   | 0.59468     |
+BLUES      |   | 0.28673     |
+METAL      |   | 0.39140     |
+-----------------------------------------------------------------
 """
 for fileLen in range(100):
     path = 'genres/{0}/{0}.00{1:03}.au'.format(GENRES,fileLen)
@@ -56,8 +57,7 @@ for fileLen in range(100):
         x = np.mean(x, axis = 1)
     
     Chroma = librosa.feature.chroma_stft(y=x, sr=fs)
-    Chroma = Chroma/np.tile(np.sum(np.abs(Chroma)**2, axis=0)**(1./2), \
-                        (Chroma.shape[0], 1))
+    Chroma = Chroma/np.tile(np.sum(np.abs(Chroma)**2, axis=0)**(1./2),(Chroma.shape[0], 1))
     #Q1###
     GAMA = 1
     Chroma = np.log10(1+GAMA *np.abs(Chroma))
@@ -69,17 +69,26 @@ for fileLen in range(100):
     """
     
     sumChroma =np.sum(Chroma,axis = 1)
-    tonic = np.argmax(sumChroma)
+    
     #substract mean x - x bar
     sumChroma -= np.sum(sumChroma) /sumChroma.shape[0]
-
-    temp_ma = Template[tonic]
+    temp_ma = Template[0]
     temp_ma -= np.sum(temp_ma)/12
-    temp_mi=Template[tonic+12]
+    temp_mi=Template[12]
     temp_mi -= np.sum(temp_mi)/12
-    MajorCof = np.dot(temp_ma,sumChroma)/ np.sqrt(np.multiply(np.dot(sumChroma,sumChroma),np.dot(temp_ma,temp_ma)))
-     
-    MinorCof = np.dot(temp_mi,sumChroma)/np.sqrt(np.multiply(np.dot(sumChroma,sumChroma),np.dot(temp_mi,temp_mi)))
+    MajorCof = np.dot(temp_ma,sumChroma)/np.sqrt(np.multiply(np.dot(sumChroma,sumChroma),np.dot(temp_ma,temp_ma)))
+    MinCof = np.dot(temp_mi,sumChroma)/np.sqrt(np.multiply(np.dot(sumChroma,sumChroma),np.dot(temp_mi,temp_mi)))
+    for i in range(1,12):
+        temp_ma = Template[i]
+        temp_ma -= np.sum(temp_ma)/12
+        temp_mi=Template[i+12]
+        temp_mi -= np.sum(temp_mi)/12
+        MajorCof = np.append(MajorCof,np.dot(temp_ma,sumChroma)/np.sqrt(np.multiply(np.dot(sumChroma,sumChroma),np.dot(temp_ma,temp_ma))))
+         
+        MinCof = np.append(MinCof,np.dot(temp_mi,sumChroma)/np.sqrt(np.multiply(np.dot(sumChroma,sumChroma),np.dot(temp_mi,temp_mi))))
+    cof = MajorCof
+    cof = np.append(cof,MinCof)
+    key = np.argmax(cof)
     if(ansKey == -1):
         music_pieces -=1
         continue
@@ -98,16 +107,20 @@ for fileLen in range(100):
     else :
         ansKey = ansKey-3
 
-    if(tonic >=0 and tonic <= 11):
-        if(MajorCof>MinorCof):
-            print(tonic,Key[tonic]+" Major")
-            if tonic == ansKey:
-                acc = acc+1
-        else:
-            print((tonic+12),Key[tonic+12]+" Minor")
-            if tonic+12 == ansKey:
-                acc=acc+1 
-        print("Ans: ",Key[ansKey])
+
+    print(key,Key[key])
+    if key == ansKey:
+        acc = acc+1
+    elif (key+7)%12 == ansKey:
+        acc = acc + 0.5
+        print("fifthPerfect")
+    elif (key + 9)%12+12 == ansKey:   
+        acc = acc + 0.3
+        print("Relative")
+    elif key + 12 == ansKey:
+        acc = acc + 0.2
+        print("Parallel")         
+    print("Ans: ",Key[ansKey])
 print("#music_pieces: ",music_pieces)
 if music_pieces !=0:
     print('accuracy: ',acc/music_pieces)

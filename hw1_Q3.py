@@ -35,14 +35,14 @@ music_pieces = 100;
 #manually change path to each genre and test each song     
 GENRES = "metal"      
 """
-------------------------ACCURACY-----------------
-gama     100      |    10     |    1
-ROCK    0.2755    |  0.31633  | 0.33673
-HIPHOP  0.12345   |  0.14814  | 0.13580
-POP     0.35106   |  0.40426  | 0.38297
-BLUES   0.0408    |  0.0408   | 0.06122
-METAL   0.1935    |  0.1935   | 0.21505
--------------------------------------------------
+---------------ACCURACY---------------------------
+gama      100     |    10    |    1
+ROCK    0.31837   | 0.35918  | 0.39796
+HIPHOP  0.17654   | 0.19630  | 0.18395
+POP     0.39149   | 0.43723  | 0.42978
+BLUES   0.14898   | 0.15510  | 0.17551
+METAL   0.25484   | 0.26129  | 0.28065
+--------------------------------------------------
 """
 for fileLen in range(100):
     path = 'genres/{0}/{0}.00{1:03}.au'.format(GENRES,fileLen)
@@ -103,10 +103,29 @@ for fileLen in range(100):
             print(tonic,Key[tonic]+" Major")
             if tonic == ansKey:
                 acc = acc+1
+            elif (tonic+7)%12 == ansKey:
+                acc = acc + 0.5
+                print("fifthPerfect")
+            elif (tonic + 9)%12+12 == ansKey:   
+                acc = acc + 0.3
+                print("Relative")
+            elif tonic + 12 == ansKey:
+                acc = acc + 0.2
+                print("Parallel")
         else:
             print((tonic+12),Key[tonic+12]+" Minor")
             if tonic+12 == ansKey:
                 acc=acc+1 
+            elif  ((tonic-5)%12)+12 == ansKey:
+                acc = acc + 0.5
+                print("fifthPerfect")
+            elif (tonic -12+3)%12 == ansKey:
+                acc = acc + 0.3
+                print("Relative")
+            elif tonic - 12 == ansKey:
+                acc = acc + 0.2
+                print("Parallel")
+                
         print("Ans: ",Key[ansKey])
 print("#music_pieces: ",music_pieces)
 if music_pieces !=0:
