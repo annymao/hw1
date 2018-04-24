@@ -33,17 +33,17 @@ Key = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#',\
 acc = 0;         
 music_pieces = 100;
 #manually change path to each genre and test each song     
-GENRES = "rock"      
+GENRES = "metal"      
 """
----------------ACCURACY-------------------------------------------
-            new Acc                        |
-gama      100     |    10    |    1        |
-ROCK       |   | 0.45816     |
-HIPHOP     |   | 0.17407     |
-POP        |   | 0.59468     |
-BLUES      |   | 0.28673     |
-METAL      |   | 0.39140     |
------------------------------------------------------------------
+-------------------------ACCURACY---------------------------------
+                  new Acc            |     old Acc
+gama         100  |  10   |   1      |    
+ROCK       0.38776|0.45102|0.48469   |
+HIPHOP     0.2    |0.20247|0.20617   |
+POP        0.57234|0.57340|0.60319   |
+BLUES      0.28469|0.28469|0.29694   |
+METAL      0.34194|0.34516|0.40215   |
+------------------------------------------------------------------
 """
 for fileLen in range(100):
     path = 'genres/{0}/{0}.00{1:03}.au'.format(GENRES,fileLen)
@@ -59,7 +59,7 @@ for fileLen in range(100):
     Chroma = librosa.feature.chroma_stft(y=x, sr=fs)
     Chroma = Chroma/np.tile(np.sum(np.abs(Chroma)**2, axis=0)**(1./2),(Chroma.shape[0], 1))
     #Q1###
-    GAMA = 1
+    GAMA = 100
     Chroma = np.log10(1+GAMA *np.abs(Chroma))
     #spectral smoothing
     """
@@ -109,17 +109,30 @@ for fileLen in range(100):
 
 
     print(key,Key[key])
-    if key == ansKey:
-        acc = acc+1
-    elif (key+7)%12 == ansKey:
-        acc = acc + 0.5
-        print("fifthPerfect")
-    elif (key + 9)%12+12 == ansKey:   
-        acc = acc + 0.3
-        print("Relative")
-    elif key + 12 == ansKey:
-        acc = acc + 0.2
-        print("Parallel")         
+    if(key<12):
+        if key == ansKey:
+            acc = acc+1
+        elif (key+7)%12 == ansKey:
+            acc = acc + 0.5
+            print("fifthPerfect")
+        elif (key + 9)%12+12 == ansKey:   
+            acc = acc + 0.3
+            print("Relative")
+        elif key + 12 == ansKey:
+            acc = acc + 0.2
+            print("Parallel")         
+    else:
+        if key == ansKey:
+            acc = acc+1
+        elif (key-5)%12+12 == ansKey:
+            acc = acc + 0.5
+            print("fifthPerfect")
+        elif (key-9)%12== ansKey:   
+            acc = acc + 0.3
+            print("Relative")
+        elif key - 12 == ansKey:
+            acc = acc + 0.2
+            print("Parallel")     
     print("Ans: ",Key[ansKey])
 print("#music_pieces: ",music_pieces)
 if music_pieces !=0:
