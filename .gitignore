@@ -50,3 +50,12 @@ Temporary Items
 BPS_piano-20180410T063523Z-002/*
 genres/*
 gtzan_key-master/*
+hw1_T3/answer_*/*
+hw1_T3/audio
+hw1_T3/BPS_piano-*
+hw1_T3/Test
+hw1_T3/Train
+hw1_T3/Valid
+hw1_T3/train_log
+*.zip
+*.pdf
